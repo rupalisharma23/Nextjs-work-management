@@ -8,6 +8,7 @@ import CloseIcon from '@mui/icons-material/Close';
 
 export default function TaskPage(props) {
   const router = useParams()
+  const [url,setUrl] = useState([])
     const [task,setTask] = useState({
       title:'',
       content:'',
@@ -17,11 +18,18 @@ export default function TaskPage(props) {
   
     const addTasks = async() =>{
       try{
+
+        const imageUrls = await Promise.all(images.map(async (image) => {
+          const imageUrl = await a(image); // Implement your Cloudinary upload function here
+          console.log(imageUrl)
+          return imageUrl;
+        }));
   
         const response = await axios.post(`http://localhost:3000/api/tasks`,{
           title:task.title,
           content:task.content,
-          status:task.status
+          status:task.status,
+          image:imageUrls
         })
   
       }catch(error){
@@ -41,7 +49,8 @@ export default function TaskPage(props) {
         const response = await axios.put(`http://localhost:3000/api/tasks/${taskId}`,{
           title:task.title,
           content:task.content,
-          status:task.status
+          status:task.status,
+          image:url
         })
         toast.success('updated successfully')
       }catch(error){
@@ -83,6 +92,26 @@ export default function TaskPage(props) {
       e.preventDefault(); // Prevent the default form submission behavior
      props.flag? updateTask(): addTasks(); // Call your addTasks function to perform the POST request
     };
+
+    const a = async(image) =>{
+      try{
+        const form = new FormData();
+        form.append("file",image);
+        form.append("upload_preset","nyihftcy");
+        form.append("cloud_name","ds2garsn4");
+       const result = await axios.post(`https://api.cloudinary.com/v1_1/ds2garsn4/image/upload`, form)
+       return result.data.secure_url
+      }
+      catch(error){
+        console.log(error)
+        return null
+      }
+      
+    }
+
+    console.log(url)
+
+
   return (
     <div>
       <Toaster />
@@ -152,15 +181,17 @@ export default function TaskPage(props) {
             </div>
             <div className="sm:col-span-2">
               <label onChange={handleImageChange} htmlFor="images" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"><ImageIcon style={{cursor:'pointer'}} /></label>
-              <input onChange={handleImageChange} multiple type="file" name="media" id="images" accept="image/*" hidden/>
+              <input multiple onChange={handleImageChange} type="file" name="media" id="images" accept="image/*" hidden/>
               <div className="flex gap-4">
               {images.map((image,index)=>{
               return (
                   <div className="relative"><img src={URL.createObjectURL(image)} alt="" className="h-[100px] w-[100px] border-2 border-blue-600 " /><div className="absolute top-[-12px] right-[-8px]"><CloseIcon style={{height:'20px',width:'20px', cursor:'pointer'}} onClick={()=>{deletePhoto(index)}} /></div></div> 
                    )
                   })}
+                  {/* <img src="http://res.cloudinary.com/ds2garsn4/image/upload/v1692717074/nextjs_could/gl6kaohu8oribqeyyk7g.svg" alt="" srcset="" /> */}
                   </div>
             </div>
+            {/* <button onClick={()=>{a()}} >uploadImage</button> */}
           </div>
           <div className="sm:col-span-2 flex items-center justify-center gap-4">
             <button

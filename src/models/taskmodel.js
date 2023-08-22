@@ -18,7 +18,8 @@ const taskSchema = new Schema({
         type:String,
         enum:['pending','completed','in progress','blocked'],
         default:'in progress'
-    }
+    },
+    image:[]
 },{timestamps:true})
 
 mongoose.models = {}
