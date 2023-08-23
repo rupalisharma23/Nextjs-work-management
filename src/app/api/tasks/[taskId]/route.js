@@ -18,9 +18,9 @@ export async function GET(request,{params}){
 
 export async function PUT(request,{params}){
     try{
-        const {title,content,status} = await request.json();
+        const {title,content,status,image} = await request.json();
         const {taskId} = params;
-        const singleUpdatedTask = await Task.findOneAndUpdate({_id:taskId},{$set:{title,content,status}},{new:true})
+        const singleUpdatedTask = await Task.findOneAndUpdate({_id:taskId},{$set:{title,content,status,image}},{new:true})
         return NextResponse.json({newTask:singleUpdatedTask},{status:201})
     }catch(error){
         console.log('error in put of taskId',error);
