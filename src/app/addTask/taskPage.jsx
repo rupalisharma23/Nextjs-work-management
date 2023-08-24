@@ -21,7 +21,6 @@ export default function TaskPage(props) {
 
         const imageUrls = await Promise.all(images.map(async (image) => {
           const imageUrl = await a(image); // Implement your Cloudinary upload function here
-          console.log(imageUrl)
           return imageUrl;
         }));
   
@@ -31,6 +30,7 @@ export default function TaskPage(props) {
           status:task.status,
           image:imageUrls
         })
+        toast.success('task created')
   
       }catch(error){
         console.log(error);
@@ -40,6 +40,8 @@ export default function TaskPage(props) {
           content:'',
           status:'in progress'
         })
+        setImages([]);
+        setUrl([])
       }
     }
 
@@ -95,9 +97,6 @@ export default function TaskPage(props) {
       setUrl(deletedPhotos);
     }
 
-    console.log('images',images)
-    console.log('url',url)
-
     useEffect(()=>{
       props.flag && getTask()
     },[])
@@ -122,9 +121,6 @@ export default function TaskPage(props) {
       }
       
     }
-
-    console.log(url)
-
 
   return (
     <div className="pb-4">
