@@ -8,6 +8,7 @@ import CloseIcon from '@mui/icons-material/Close';
 
 export default function TaskPage(props) {
   const router = useParams()
+  const [url,setUrl] = useState([])
     const [task,setTask] = useState({
       title:'',
       content:'',
@@ -17,12 +18,19 @@ export default function TaskPage(props) {
   
     const addTasks = async() =>{
       try{
+
+        const imageUrls = await Promise.all(images.map(async (image) => {
+          const imageUrl = await a(image); // Implement your Cloudinary upload function here
+          return imageUrl;
+        }));
   
         const response = await axios.post(`http://localhost:3000/api/tasks`,{
           title:task.title,
           content:task.content,
-          status:task.status
+          status:task.status,
+          image:imageUrls
         })
+        toast.success('task created')
   
       }catch(error){
         console.log(error);
@@ -32,16 +40,25 @@ export default function TaskPage(props) {
           content:'',
           status:'in progress'
         })
+        setImages([]);
+        setUrl([])
       }
     }
 
     const updateTask = async () =>{
       try{
+
+        const imageUrls = await Promise.all(images.map(async (image) => {
+          const imageUrl = await a(image); // Implement your Cloudinary upload function here
+          return imageUrl;
+        }));
+
         const {taskId} = router
         const response = await axios.put(`http://localhost:3000/api/tasks/${taskId}`,{
           title:task.title,
           content:task.content,
-          status:task.status
+          status:task.status,
+          image:[...imageUrls,...url]
         })
         toast.success('updated successfully')
       }catch(error){
@@ -55,6 +72,7 @@ export default function TaskPage(props) {
         const {taskId} = router
         const respose = await axios.get(`http://localhost:3000/api/tasks/${taskId}`)
         setTask({...task,title:respose.data.title,content:respose.data.content,status:respose.data.status})
+        setUrl(respose.data.image)
       }
       catch(error){
         console.log('error in getTask',error)
@@ -73,7 +91,11 @@ export default function TaskPage(props) {
       setImages(deletedPhotos);
     }
 
-    console.log(images)
+    const deletePhotoExisting = (index) =>{
+      const deletedPhotos = [...url];
+      deletedPhotos.splice(index, 1);
+      setUrl(deletedPhotos);
+    }
 
     useEffect(()=>{
       props.flag && getTask()
@@ -83,8 +105,25 @@ export default function TaskPage(props) {
       e.preventDefault(); // Prevent the default form submission behavior
      props.flag? updateTask(): addTasks(); // Call your addTasks function to perform the POST request
     };
+
+    const a = async(image) =>{
+      try{
+        const form = new FormData();
+        form.append("file",image);
+        form.append("upload_preset","nyihftcy");
+        form.append("cloud_name","ds2garsn4");
+       const result = await axios.post(`https://api.cloudinary.com/v1_1/ds2garsn4/image/upload`, form)
+       return result.data.secure_url
+      }
+      catch(error){
+        console.log(error)
+        return null
+      }
+      
+    }
+
   return (
-    <div>
+    <div className="pb-4">
       <Toaster />
     <img src="/addTasks.svg" className="w-[400px] h-[400px] mx-auto" alt="" />
     <section className="bg-white dark:bg-gray-900">
@@ -152,15 +191,23 @@ export default function TaskPage(props) {
             </div>
             <div className="sm:col-span-2">
               <label onChange={handleImageChange} htmlFor="images" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"><ImageIcon style={{cursor:'pointer'}} /></label>
-              <input onChange={handleImageChange} multiple type="file" name="media" id="images" accept="image/*" hidden/>
+              <input multiple onChange={handleImageChange} type="file" name="media" id="images" accept="image/*" hidden/>
               <div className="flex gap-4">
-              {images.map((image,index)=>{
+              { images.length>0 && images.map((image,index)=>{
               return (
                   <div className="relative"><img src={URL.createObjectURL(image)} alt="" className="h-[100px] w-[100px] border-2 border-blue-600 " /><div className="absolute top-[-12px] right-[-8px]"><CloseIcon style={{height:'20px',width:'20px', cursor:'pointer'}} onClick={()=>{deletePhoto(index)}} /></div></div> 
                    )
-                  })}
+                  })
+                }
+                {
+                  url.length>0 && url.map((i,index)=>{
+                    return <div className="relative"><img src={i} alt="" className="h-[100px] w-[100px] border-2 border-blue-600 " /><div className="absolute top-[-12px] right-[-8px]"><CloseIcon style={{height:'20px',width:'20px', cursor:'pointer'}} onClick={()=>{deletePhotoExisting(index)}} /></div></div> 
+                  })
+                }
+                 
                   </div>
             </div>
+            {/* <button onClick={()=>{a()}} >uploadImage</button> */}
           </div>
           <div className="sm:col-span-2 flex items-center justify-center gap-4">
             <button

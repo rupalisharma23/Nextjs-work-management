@@ -5,9 +5,11 @@ import Image from 'next/image';
 import axios from 'axios';
 import toast, { Toaster } from 'react-hot-toast';
 import { useRouter } from 'next/navigation';
+import { useUser } from '../ContextApiUser';
 
 export default function page() {
   const router = useRouter()
+  const [user,setUser] = useUser()
     const [userDetails,setUserDetails] = useState({
         email:'',
         password:''
@@ -20,6 +22,10 @@ export default function page() {
           password:userDetails.password
         })
         toast.success('logged in successfully')
+        if (typeof window !== "undefined" && window.localStorage) {
+        localStorage.setItem('isLoggedIn',true)
+        setUser(true)
+      }
         router.push('/addTask')
       }catch(error){
         toast.error(error.response.data.message)

@@ -8,7 +8,7 @@ connection();
 
 export async function POST(request){
     try{
-        const {title,content,status} = await request.json();
+        const {title,content,status,image} = await request.json();
         if(!title){
             return NextResponse.json({message:'title is requires'},{status:400})
         }
@@ -21,7 +21,7 @@ export async function POST(request){
         const cookieStore = cookies()
         const tokenInfo = cookieStore.get('token');
         const decoded = jwt.verify(tokenInfo.value, process.env.JWT_SECRET);
-        const newTask = await Task.create({author:decoded._id,title,content,status})
+        const newTask = await Task.create({author:decoded._id,title,content,status,image})
         return NextResponse.json({newTask},{status:201})
     }catch(error){
         console.log('error in post of tasks',error);
